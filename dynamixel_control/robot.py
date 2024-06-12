@@ -47,9 +47,12 @@ class Robot:
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
                                                self.config.TORQUE_ENABLE)
 
-    def move_pos_sync(self, positions):
+    def move_pos_sync(self, positions, relative_to_init=True):
         for id in self.ids:
-            goal = int(self.initial_positions[id]) + positions[id]
+            if relative_to_init:
+                goal = int(self.initial_positions[id] + positions[id])
+            else:
+                goal = int(positions)
             param_goal_position = [DXL_LOBYTE(DXL_LOWORD(goal)), DXL_HIBYTE(DXL_LOWORD(goal)), DXL_LOBYTE(DXL_HIWORD(goal)), DXL_HIBYTE(DXL_HIWORD(goal))]
             self.group_sync_write_pos.addParam(id, param_goal_position)
         self.group_sync_write_pos.txPacket()
