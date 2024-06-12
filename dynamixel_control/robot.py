@@ -26,8 +26,10 @@ class Robot:
                                                self.config.TORQUE_DISABLE)
             # update operating mode
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_OPERATING_MODE,op_mode)
-            self.group_sync_write_pos = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_POSITION, 4)
-            self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, 4)
+            self.group_sync_write_pos = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_POSITION, self.config.LEN_GOAL_POSITION)
+            self.group_sync_write_current = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_CURRENT, self.config.LEN_GOAL_CURRENT)
+            self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
+            self.group_sync_read_current = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)
 
         for id in self.ids:
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
@@ -57,5 +59,19 @@ class Robot:
         positions = dict.fromkeys(self.ids)
         self.group_sync_read_pos.txRxPacket()
         for id in self.ids:
-            positions[id] = self.group_sync_read_pos.getData(id, self.config.ADDR_PRESENT_POSITION, 4)
+            positions[id] = self.group_sync_read_pos.getData(id, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
         return positions
+    
+    def move_current_sync(self, currents):
+        for id in self.ids:
+            goal = int(currents)
+            param_goal_current = [DXL_LOBYTE(goal), DXL_HIBYTE(goal)]
+            self.group_sync_write_current.addParam(id, param_goal_current)
+        self.group_sync_write_current.txPacket()
+        self.group_sync_write_current.clearParam()
+    
+    def get_currents_sync(self):
+        currents = dict.fromkeys(self.ids)
+        self.group_sync_read_current.txRxPacket()
+        for id in self.ids:
+            currents[id] = self.group_sync_read_current.getData(id, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)

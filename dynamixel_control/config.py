@@ -29,6 +29,11 @@ class Config:
     TORQUE_DISABLE              = 0
     PROTOCOL_VERSION            = 2.0
 
+    LEN_GOAL_POSITION           = 4
+    LEN_PRESENT_POSITION        = 4
+    LEN_GOAL_CURRENT            = 2
+    LEN_PRESENT_CURRENT         = 2
+
     def __init__(self, device_name='/dev/ttyUSB0', position_threshold=20) -> None:
         super().__init__()
         self.DEVICENAME = device_name
