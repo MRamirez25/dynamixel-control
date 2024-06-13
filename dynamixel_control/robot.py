@@ -13,7 +13,7 @@ class Robot:
         self.packet_handler = PacketHandler(config.PROTOCOL_VERSION)
         self.initial_positions = {}
 
-    def start(self, op_mode):
+    def start(self, op_mode, current_limit=None):
         if self.port_handler.openPort():
             print(f"Succeeded to open the port")
 
@@ -26,6 +26,7 @@ class Robot:
                                                self.config.TORQUE_DISABLE)
             # update operating mode
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_OPERATING_MODE,op_mode)
+            self.packet_handler.write2ByteTxRx(self.port_handler, id, self.config.ADDR_CURRENT_LIMIT, int(current_limit))
             self.group_sync_write_pos = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_POSITION, self.config.LEN_GOAL_POSITION)
             self.group_sync_write_current = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_CURRENT, self.config.LEN_GOAL_CURRENT)
             self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)

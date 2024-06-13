@@ -4,6 +4,7 @@ class Config:
     ADDR_BAUD_RATE              = 8
     ADDR_OPERATING_MODE         = 11
     ADDR_HOMING_OFFSET          = 20
+    ADDR_CURRENT_LIMIT          = 38
     ADDR_TORQUE_ENABLE          = 64
     ADDR_POSITION_D_GAIN        = 80
     ADDR_POSITION_I_GAIN        = 82
