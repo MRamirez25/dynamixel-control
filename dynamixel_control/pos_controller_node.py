@@ -21,10 +21,9 @@ class PosController:
         self.move_ccw_sub = rospy.Subscriber('/move_dynamixels_ccw', Bool, self.move_ccw_cb)
         # self.listener = Listener(on_press=self._on_press, on_release=self._on_release)
         # self.listener.start()
-        self.left = False
-        self.right = False
+        self.move_cw_state = False
+        self.move_ccw_state = False
         self.stop = False
-        self.present_positions = {id: self.robot.initial_positions[id] for id in self.robot.ids}
 
     def move_cw_cb(self, msg):
         # print(self.present_positions)
@@ -54,8 +53,11 @@ class PosController:
 #%%
 if __name__ == '__main__':
     rospy.init_node('dynamixels_pos_control_node', anonymous=True)
-    pos_controller = PosController(device_name='/dev/my_dynamixel')
+    rospy.set_param('/dynamixels/ids', [3])
+    pos_controller = PosController()
     pos_controller.robot.start(pos_controller.config.OPERATING_MODE_POS_CURRENT, current_limit=5)
+    pos_controller.present_positions = {id: pos_controller.robot.initial_positions[id] for id in pos_controller.robot.ids}
+
     while not rospy.is_shutdown():
         if pos_controller.move_cw_state:
             pos_controller.move_cw()
