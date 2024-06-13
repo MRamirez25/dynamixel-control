@@ -32,6 +32,9 @@ class Robot:
             self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
             self.group_sync_read_current = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)
 
+            self.group_sync_read_pos.addParam(id)
+            self.group_sync_read_current.addParam(id)
+
         for id in self.ids:
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
                                                self.config.TORQUE_ENABLE)
@@ -53,7 +56,7 @@ class Robot:
             if relative_to_init:
                 goal = int(self.initial_positions[id] + positions[id])
             else:
-                goal = int(positions)
+                goal = int(positions[id])
             param_goal_position = [DXL_LOBYTE(DXL_LOWORD(goal)), DXL_HIBYTE(DXL_LOWORD(goal)), DXL_LOBYTE(DXL_HIWORD(goal)), DXL_HIBYTE(DXL_HIWORD(goal))]
             self.group_sync_write_pos.addParam(id, param_goal_position)
         self.group_sync_write_pos.txPacket()
