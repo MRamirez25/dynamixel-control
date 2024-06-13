@@ -31,16 +31,17 @@ class KeyboardPositionController():
     
     def control_loop(self):
         while not self.stop:
+            self.present_positions = self.robot.get_positions_sync()
             if self.right:
                 positions = {}
                 for id in self.robot.ids:
-                    positions[id] = int(increment)
-                self.robot.move_pos_sync(positions)
+                    positions[id] = int(self.present_positions[id] + increment)
+                self.robot.move_pos_sync(positions, relative_to_init=False)
             if self.left:
                 positions = {}
                 for id in self.robot.ids:
-                    positions[id] = int(-increment)
-                self.robot.move_pos_sync(positions)
+                    positions[id] = int(self.present_positions[id] - increment)
+                self.robot.move_pos_sync(positions, relative_to_init=False)
 
 
 if __name__ == "__main__":
@@ -54,5 +55,5 @@ if __name__ == "__main__":
     increment = args.control_increment
     ids = args.ids
     controller = KeyboardPositionController(device_name=device_name, control_increment=increment, ids=ids)
-    controller.robot.start(op_mode=controller.config.OPERATING_MODE_POSITION)
+    controller.robot.start(op_mode=controller.config.OPERATING_MODE_POSITION, current_limit=100)
     controller.control_loop()
