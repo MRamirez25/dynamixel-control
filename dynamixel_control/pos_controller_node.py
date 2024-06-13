@@ -17,12 +17,13 @@ class PosController:
         self.config = Config(device_name=device_name)
         self.robot = Robot(config=self.config, ids=ids)
 
-        self.listener = Listener(on_press=self._on_press, on_release=self._on_release)
-        self.listener.start()
+        self.move_cw_sub = rospy.Subscriber('/move_dynamixels_cw', Bool, self.move_cw_cb)
+        self.move_ccw_sub = rospy.Subscriber('/move_dynamixels_ccw', Bool, self.move_ccw_cb)
+        # self.listener = Listener(on_press=self._on_press, on_release=self._on_release)
+        # self.listener.start()
         self.left = False
         self.right = False
         self.stop = False
-        self.cumul_displacements = {id: 0 for id in self.robot.ids}
         self.present_positions = {id: self.robot.initial_positions[id] for id in self.robot.ids}
 
     def move_cw_cb(self, msg):
@@ -54,6 +55,7 @@ class PosController:
 if __name__ == '__main__':
     rospy.init_node('dynamixels_pos_control_node', anonymous=True)
     pos_controller = PosController(device_name='/dev/my_dynamixel')
+    pos_controller.robot.start(pos_controller.config.OPERATING_MODE_POS_CURRENT, current_limit=5)
     while not rospy.is_shutdown():
         if pos_controller.move_cw_state:
             pos_controller.move_cw()
