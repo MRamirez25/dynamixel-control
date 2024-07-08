@@ -1,6 +1,6 @@
 import numpy as np
 from dynamixel_sdk import PortHandler, PacketHandler, GroupSyncWrite, DXL_LOWORD, DXL_HIWORD, DXL_LOBYTE, DXL_HIBYTE, GroupSyncRead
-from config import Config
+from .config import Config
 
 class Robot:
 
