@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+
+import rospy
+import tf2_ros
+import tf2_geometry_msgs
+import numpy as np
+import cv2
+from geometry_msgs.msg import PointStamped, Point
+from sensor_msgs.msg import Image, CameraInfo
+from std_msgs.msg import Empty
+from cv_bridge import CvBridge
+
+
+class RandomPointProjector:
+    def __init__(self):
+        rospy.init_node('random_point_projector', anonymous=True)
+
+        # Parameters
+        self.robot_frame = rospy.get_param('~robot_frame', 'panda_link0')
+        self.camera_frame = rospy.get_param('~camera_frame', 'camera_color_optical_frame')
+        self.camera_topic = rospy.get_param('~camera_topic', '/camera/color/image_raw')
+        self.camera_info_topic = rospy.get_param('~camera_info_topic', '/camera/color/camera_info')
+        self.trigger_topic = rospy.get_param('~trigger_topic', '/trigger_projection')
+        self.image_pub = rospy.Publisher('/annotated_image', Image, queue_size=1)
+
+        # TF2 listener
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+
+        # OpenCV bridge
+        self.bridge = CvBridge()
+
+        # Camera Intrinsics
+        self.camera_intrinsics = None
+        rospy.Subscriber(self.camera_info_topic, CameraInfo, self.camera_info_callback)
+
+        # Subscribe to trigger topic
+        rospy.Subscriber(self.trigger_topic, Empty, self.trigger_callback)
+
+        # Subscribe to image topic
+        rospy.Subscriber(self.camera_topic, Image, self.image_callback)
+
+        # State variables
+        self.generate_points = False
+        self.latest_image = None
+        self.points_to_annotate = []
+
+        # Publish loop for annotated images
+        self.publish_rate = rospy.Rate(10)  # Publish at 10 Hz
+        rospy.Timer(rospy.Duration(0.1), self.publish_annotated_image)
+
+    def camera_info_callback(self, msg):
+        """Extract camera intrinsic parameters from CameraInfo message."""
+        self.camera_intrinsics = np.array(msg.K).reshape(3, 3)
+
+    def trigger_callback(self, msg):
+        """Generate new points when Bool message is True."""
+        if msg:
+            rospy.loginfo("Received trigger to generate new points.")
+            self.generate_points = True
+
+    def image_callback(self, msg):
+        """Store the latest image and process points if needed."""
+        if self.camera_intrinsics is None:
+            rospy.logwarn("Waiting for camera intrinsics...")
+            return
+
+        self.latest_image = msg
+
+        if self.generate_points:
+            # Generate two random points with different bounds
+            random_point1 = self.generate_random_point(bounds=(0.25, 0.65, 0, -0.4))
+            random_point2 = self.generate_random_point(bounds=(0.25, 0.65, 0, 0.4))
+
+            # Process both points
+            self.points_to_annotate = self.process_points([random_point1, random_point2])
+            self.generate_points = False
+
+    def generate_random_point(self, bounds):
+        """Generate a random point in the robot frame with z = 0."""
+        min_x, max_x, min_y, max_y = bounds
+        random_x = np.random.uniform(min_x, max_x)
+        random_y = np.random.uniform(min_y, max_y)
+        return PointStamped(
+            header=rospy.Header(frame_id=self.robot_frame),
+            point=Point(x=random_x, y=random_y, z=0.0)
+        )
+
+    def transform_point(self, point):
+        """Transform a point from the robot frame to the camera frame."""
+        try:
+            point.header.stamp = rospy.Time(0)
+            return self.tf_buffer.transform(point, self.camera_frame, rospy.Duration(2.0))
+        except (tf2_ros.LookupException, tf2_ros.ExtrapolationException) as e:
+            rospy.logwarn(f"Failed to transform point: {e}")
+            return None
+
+    def project_to_image(self, point):
+        """Project a 3D point onto the 2D image plane."""
+        x, y, z = point.point.x, point.point.y, point.point.z
+        if z <= 0:
+            return None  # Skip points behind the camera
+
+        pixel_coords = self.camera_intrinsics @ np.array([x / z, y / z, 1])
+        pixel_x = int(pixel_coords[0])
+        pixel_y = int(pixel_coords[1])
+        return (pixel_x, pixel_y)
+
+    def annotate_image(self, image, pixel_coords):
+        """Draw circles on the image at the projected points."""
+        for i, coords in enumerate(pixel_coords):
+            if coords:
+                if i == 0:
+                    cv2.circle(image, coords, 5, (0, 255, 0), -1)
+                else:
+                    cv2.circle(image, coords, 5, (0, 0, 255), -1)
+                rospy.loginfo(f"Projected point at: {coords}")
+
+    def process_points(self, points):
+        """Transform and project multiple points."""
+        projected_points = []
+        for point in points:
+            transformed_point = self.transform_point(point)
+            if transformed_point:
+                pixel_coords = self.project_to_image(transformed_point)
+                projected_points.append(pixel_coords)
+        return projected_points
+
+    def publish_annotated_image(self, event):
+        """Publish the annotated image continuously at a fixed rate."""
+        if self.latest_image:
+            cv_image = self.bridge.imgmsg_to_cv2(self.latest_image, "bgr8")
+            self.annotate_image(cv_image, self.points_to_annotate)
+            self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+
+
+if __name__ == '__main__':
+    try:
+        node = RandomPointProjector()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
