@@ -1,7 +1,7 @@
 import numpy as np
 from dynamixel_sdk import PortHandler, PacketHandler, GroupSyncWrite, DXL_LOWORD, DXL_HIWORD, DXL_LOBYTE, DXL_HIBYTE, GroupSyncRead
-from .config import Config
-
+from config import Config
+import time
 class Robot:
 
     def __init__(self, config: Config, ids: list) -> None:
@@ -20,6 +20,11 @@ class Robot:
         if self.port_handler.setBaudRate(self.config.BAUDRATE):
             print(f"Succeeded to set baud rate")
 
+        self.group_sync_write_pos = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_POSITION, self.config.LEN_GOAL_POSITION)
+        self.group_sync_write_current = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_CURRENT, self.config.LEN_GOAL_CURRENT)
+        self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
+        self.group_sync_read_current = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)
+        
         for i, id in enumerate(self.ids):
             # disable torque
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
@@ -27,10 +32,8 @@ class Robot:
             # update operating mode
             self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_OPERATING_MODE,op_mode)
             self.packet_handler.write2ByteTxRx(self.port_handler, id, self.config.ADDR_CURRENT_LIMIT, int(current_limit))
-            self.group_sync_write_pos = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_POSITION, self.config.LEN_GOAL_POSITION)
-            self.group_sync_write_current = GroupSyncWrite(self.port_handler, self.packet_handler, self.config.ADDR_GOAL_CURRENT, self.config.LEN_GOAL_CURRENT)
-            self.group_sync_read_pos = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
-            self.group_sync_read_current = GroupSyncRead(self.port_handler, self.packet_handler, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)
+            # self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_BAUD_RATE, int(3))
+            # self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_RETURN_DELAY, int(0))
 
             self.group_sync_read_pos.addParam(id)
             self.group_sync_read_current.addParam(id)
@@ -42,6 +45,7 @@ class Robot:
                 .read4ByteTxRx(self.port_handler, id, self.config.ADDR_PRESENT_POSITION)
             self.initial_positions[id] = present_position
             print(f"initial position {id}: {present_position}")
+        self.present_currents = self.get_currents_sync()
 
     def set_homing_offsets(self, homing_offsets: dict):
         for id in self.ids:
@@ -64,11 +68,29 @@ class Robot:
     
     def get_positions_sync(self):
         positions = dict.fromkeys(self.ids)
-        self.group_sync_read_pos.txRxPacket()
+        result = (self.group_sync_read_pos.txRxPacket())
+        if result != 0:
+            return -1
         for id in self.ids:
             positions[id] = self.group_sync_read_pos.getData(id, self.config.ADDR_PRESENT_POSITION, self.config.LEN_PRESENT_POSITION)
         return positions
     
+    def get_homing_offsets(self):
+        offsets = dict.fromkeys(self.ids)
+        for id in self.ids:
+            offset, _, _ = self.packet_handler \
+                .read4ByteTxRx(self.port_handler, id, self.config.ADDR_HOMING_OFFSET)
+            offsets[id] = offset
+        return offsets
+
+    # def set_homing_offsets(self, homing_offsets: dict):
+    #     for id in self.ids:
+    #         self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
+    #                                            self.config.TORQUE_DISABLE)
+    #         self.packet_handler.write4ByteTxRx(self.port_handler, id, self.config.ADDR_HOMING_OFFSET, homing_offsets[id])
+    #         self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
+    #                                            self.config.TORQUE_ENABLE)
+
     def move_current_sync(self, currents):
         for id in self.ids:
             goal = int(currents)
@@ -82,3 +104,10 @@ class Robot:
         self.group_sync_read_current.txRxPacket()
         for id in self.ids:
             currents[id] = self.group_sync_read_current.getData(id, self.config.ADDR_PRESENT_CURRENT, self.config.LEN_PRESENT_CURRENT)
+        return currents
+    
+    def stop(self):
+        for i, id in enumerate(self.ids):
+        # disable torque
+            self.packet_handler.write1ByteTxRx(self.port_handler, id, self.config.ADDR_TORQUE_ENABLE,
+                                            self.config.TORQUE_DISABLE)
