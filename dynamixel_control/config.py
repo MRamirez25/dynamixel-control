@@ -2,6 +2,8 @@ class Config:
 
     # Control table address
     ADDR_BAUD_RATE              = 8
+    ADDR_RETURN_DELAY           = 9
+    ADDR_DRIVE_MODE             = 10
     ADDR_OPERATING_MODE         = 11
     ADDR_HOMING_OFFSET          = 20
     ADDR_CURRENT_LIMIT          = 38
@@ -19,7 +21,7 @@ class Config:
     DXL_NEUTRAL_POSITION        = 0
     DXL_MINIMUM_CURRENT         = -1193     # CCW: -theta_dot
     DXL_MAXIMUM_CURRENT         = 1193      # CW: theta_dot
-    BAUDRATE                    = 1_000_000
+    BAUDRATE                    = 4_000_000
     OPERATING_MODE_CURRENT      = 0
     OPERATING_MODE_VELOCITY     = 1
     OPERATING_MODE_POSITION     = 3
