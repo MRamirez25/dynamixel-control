@@ -1,0 +1,12 @@
+Experiment Metadata
+====================
+Experiment ID: 27
+Timestamp: 2025-10-29 18:57:23
+Random Direction (radians): 2.846002
+Random Direction (degrees): 163.06
+Noise Magnitude: 0.038161
+X Direction Noise: -0.036506
+Y Direction Noise: 0.011116
+Success: False
+Status: FAILED
+====================
