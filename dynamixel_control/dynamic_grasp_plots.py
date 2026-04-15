@@ -177,6 +177,17 @@ ax.legend()
 # Show the plot
 plt.show()
 # %%
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Times New Roman"],
+    'font.size': 24,               # Base font size
+    'axes.titlesize': 24,          # Title size
+    'axes.labelsize': 24,          # X/Y axis labels
+    'xtick.labelsize': 24,
+    'ytick.labelsize': 24,
+    'legend.fontsize': 20})
+#%%
 ###################################### Create a 2D plot
 fig, ax = plt.subplots(figsize=(9,6),dpi=300)
 # Plot the trajectories
@@ -493,8 +504,8 @@ subfigs_cols = subfig_R.subfigures(1, 3, wspace=0.05)
 
 start_frame = 1
 imgs = [
-    [mpimg.imread(f"/media/mariano/Windows2/phd/hybrid_arxiv_paper/frames_nb/dynamic_grasp/frame{k}.png") for k in range(start_frame,start_frame+n_images)],
     [mpimg.imread(f"/media/mariano/Windows2/phd/hybrid_arxiv_paper/frames_nb/dynamic_grasp2/frame{k}.png") for k in range(start_frame,start_frame+n_images)],
+    [mpimg.imread(f"/media/mariano/Windows2/phd/hybrid_arxiv_paper/frames_nb/dynamic_grasp/frame{k}.png") for k in range(start_frame,start_frame+n_images)],
     [mpimg.imread(f"/media/mariano/Windows2/phd/hybrid_arxiv_paper/frames_nb/dynamic_grasp3/frame{k}.png") for k in range(start_frame,start_frame+n_images)],
 ]
 
@@ -505,7 +516,7 @@ crop_bottom = 30
 overlay_alpha = 0.6
 
 column_labels = [r"$C_1$", r"$C_2$", r"$C_3$"]
-
+seconds = [0.0, 0.15, 0.3, 0.6,0.9]
 for i, (subfig_col, imgset, label) in enumerate(zip(subfigs_cols, imgs, column_labels)):
     subfig_col.set_facecolor("lightgray")  # ← add gray background per column
     axs = subfig_col.subplots(n_images, 1, sharex=True, sharey=True, 
@@ -520,6 +531,14 @@ for i, (subfig_col, imgset, label) in enumerate(zip(subfigs_cols, imgs, column_l
             ax.imshow(overlay, alpha=overlay_alpha, zorder=2)
 
         ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+        timestamp_seconds = seconds[row]
+        ax.text(
+        0.63, 0.18,  # x, y in axes coords
+        fr"$t = {timestamp_seconds}s$",  # LaTeX-formatted timestamp
+        transform=ax.transAxes,
+        fontsize=10,
+        va='top', ha='left',
+        bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', boxstyle='round,pad=0.2'))
 
     # Label the top axis
     axs[0].text(
@@ -528,4 +547,6 @@ for i, (subfig_col, imgset, label) in enumerate(zip(subfigs_cols, imgs, column_l
     )
 
 plt.savefig("/media/mariano/Windows2/phd/hybrid_arxiv_paper/example_plots/full_figure_dynamic.pdf")
+plt.show()
+plt.close()
 # %%

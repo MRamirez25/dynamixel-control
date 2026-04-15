@@ -8,6 +8,11 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Times New Roman"]})
+#%%
 with open(f'data/noise/results_tables/directions.txt') as f:
     noise_vectors_angles = f.readlines()
 with open(f'data/noise/results_tables/success.txt') as f:
@@ -54,7 +59,7 @@ plt.show()
 from matplotlib.patches import Wedge
 
 # Create the plot
-plt.figure(figsize=(8, 8))
+plt.figure(figsize=(8, 6))
 
 # Loop through columns to plot points
 for i in range(3):  # Loop through each column
@@ -116,13 +121,18 @@ for ring_idx in range(n_rings):
                 alpha=0.25
             )
             ax.add_patch(wedge)
+ax.scatter([], [], color="green", marker="x", label="Success")
+ax.scatter([], [], color="red", marker="x", label="Failure")
 
 # Add formatting
 plt.axhline(0, color='grey', linestyle='--', linewidth=0.5)  # x-axis
 plt.axvline(0, color='grey', linestyle='--', linewidth=0.5)  # y-axis
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.title("Endpoints of Vectors with Success (Green) and Failure (Red)")
+plt.xlabel("x [m]", fontsize=13)
+plt.ylabel("y [m]", fontsize=13)
+plt.xticks(fontsize=12)  # X-axis tick labels
+plt.yticks(fontsize=12)  # Y-axis tick labels
+# plt.title("Endpoints of Vectors with Success (Green) and Failure (Red)")
 plt.axis("equal")  # Ensures equal scaling on both axes
+plt.legend()
 plt.show()
 # %%
