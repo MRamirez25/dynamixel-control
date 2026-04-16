@@ -151,39 +151,40 @@ for n in range(9):
 # Show the plot
 plt.show()
 #%%
-# import pickle
+# # import pickle
 
-# with open(f"old_traj_{skill_name}.pkl", "wb") as f:
-#     pickle.dump(old_traj, f)
+# # with open(ff"old_traj_{skill_name}_{skill_name}.pkl", "wb") as f:
+# #     pickle.dump(old_traj, f)
 
-# with open(f"transported_trajs_{skill_name}.pkl", "wb") as f:
-#     pickle.dump(transported_trajs, f)
+# # with open(ff"transported_trajs_{skill_name}_{skill_name}.pkl", "wb") as f:
+# #     pickle.dump(transported_trajs, f)
 
-# with open(f"converted_targets_dists_{skill_name}.pkl", "wb") as f:
-#     pickle.dump(converted_targets_dists, f)
+# # with open(ff"converted_targets_dists_{skill_name}_{skill_name}.pkl", "wb") as f:
+# #     pickle.dump(converted_targets_dists, f)
 
-# with open(f"converted_targets_dists_proj_{skill_name}.pkl", "wb") as f:
-#     pickle.dump(converted_targets_dists_proj, f)
+# # with open(ff"converted_targets_dists_proj_{skill_name}_{skill_name}.pkl", "wb") as f:
+# #     pickle.dump(converted_targets_dists_proj, f)
 
-# with open(f"source_distribution_{skill_name}.pkl", "wb") as f:
-#     pickle.dump(transport.source_distribution, f)
+# # with open(ff"source_distribution_{skill_name}_{skill_name}.pkl", "wb") as f:
+# #     pickle.dump(transport.source_distribution, f)
 #%%
+skill_name = "stack_two"
 skill_name = "stack_two"
 import pickle
 
-with open(f"old_traj_{skill_name}.pkl", "rb") as f:
+with open(ff"old_traj_{skill_name}_{skill_name}.pkl", "rb") as f:
     old_traj = pickle.load(f)
 
-with open(f"transported_trajs_{skill_name}.pkl", "rb") as f:
+with open(ff"transported_trajs_{skill_name}_{skill_name}.pkl", "rb") as f:
     transported_trajs = pickle.load(f)
 
-with open(f"converted_targets_dists_{skill_name}.pkl", "rb") as f:
+with open(ff"converted_targets_dists_{skill_name}_{skill_name}.pkl", "rb") as f:
     converted_targets_dists = pickle.load(f)
 
-with open(f"converted_targets_dists_proj_{skill_name}.pkl", "rb") as f:
+with open(ff"converted_targets_dists_proj_{skill_name}_{skill_name}.pkl", "rb") as f:
     converted_targets_dists_proj = pickle.load(f)
 
-with open(f"source_distribution_{skill_name}.pkl", "rb") as f:
+with open(ff"source_distribution_{skill_name}_{skill_name}.pkl", "rb") as f:
     source_distribution = pickle.load(f)
 #%%
 import matplotlib.pyplot as plt
@@ -626,6 +627,7 @@ plt.close()
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np      # only for dummy data
+import matplotlib.image as mpimg
 import matplotlib.image as mpimg
 # ---–  Level 1: outer split (1/3 : 2/3)  –---
 fig        = plt.figure(figsize=(9, 6), constrained_layout=True, dpi=300)
