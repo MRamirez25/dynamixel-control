@@ -70,8 +70,8 @@ y1, x1 = coords.max(axis=0)
 img2 = img2.crop((x0, y0, x1+1, y1+1))
 
 # Shift
-shift_x = 400   # right
-shift_y = -400  # up
+shift_x = -620   # right
+shift_y = 500  # up
 shifted_img2 = Image.new("RGBA", img1.size, (0, 0, 0, 0))
 shifted_img2.paste(img2, (shift_x, shift_y), img2)
 
@@ -80,7 +80,7 @@ bg_arr = np.array(img1).astype(np.float32)
 fg_arr = np.array(shifted_img2).astype(np.float32)
 
 # Opacity factor (like Google Docs)
-opacity = 0.55
+opacity = 0.45
 
 # Mask of non-transparent pixels in foreground
 fg_mask = fg_arr[:, :, 3] > int(255*0.9)
@@ -97,5 +97,5 @@ bg_arr[:, :, 3][fg_mask] = 255
 
 # Convert back to PIL Image and save
 merged = Image.fromarray(bg_arr.astype(np.uint8), "RGBA")
-merged.save("merged_shifted_blended.png")
+merged.save("merged_shifted_blended2.png")
 # %%

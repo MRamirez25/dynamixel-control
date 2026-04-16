@@ -806,10 +806,10 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
         # Create smooth curve through vertices, with straight lines where curves would enclose failures
         rounded_region = create_rounded_polygon_safe(region, orig_failure_points)
         rounded_region_swapped = [(y, x) for (x, y) in rounded_region]
-        polygon = Polygon(rounded_region_swapped, alpha=0.25, facecolor='darkgreen', 
-                         edgecolor='darkgreen', linewidth=3, 
-                         label='Hybrid success region' if i == 0 else None,
-                         zorder=1)
+        polygon = Polygon(rounded_region_swapped, alpha=0.4, facecolor='darkgreen', 
+                         edgecolor='darkgreen', linewidth=8, 
+                         label='Soft arm success region' if i == 0 else None,
+                         zorder=1, joinstyle='miter', capstyle='butt')
         ax.add_patch(polygon)
     
     # Plot gripper success regions on top with stronger alpha (more prominent)
@@ -818,8 +818,8 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
         rounded_region = create_rounded_polygon_safe(region, grip_failure_points)
         rounded_region_swapped = [(y, x) for (x, y) in rounded_region]
         polygon = Polygon(rounded_region_swapped, alpha=0.4, facecolor='dodgerblue', 
-                         edgecolor='blue', linewidth=3, linestyle='--',
-                         label='Gripper success region' if i == 0 else None,
+                         edgecolor='blue', linewidth=6, linestyle='--',
+                         label='Rigid gripper success region' if i == 0 else None,
                          zorder=2)
         ax.add_patch(polygon)
     
@@ -830,14 +830,14 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
         
         if not orig_success.empty:
             ax.scatter(orig_success['y_noise'], orig_success['x_noise'], 
-                      color='green', s=300, marker='*', alpha=1.0, 
-                      label=f'Hybrid success', 
+                      color='green', s=550, marker='*', alpha=1.0, 
+                      label=f'Soft arm success', 
                       edgecolors='darkgreen', linewidths=1.5, zorder=6)
         
         if not orig_failure.empty:
             ax.scatter(orig_failure['y_noise'], orig_failure['x_noise'], 
                       color='red', s=150, marker='x', alpha=1.0, 
-                      label=f'Hybrid failure', 
+                      label=f'Soft arm failure', 
                       linewidths=3, zorder=6)
     
     if not df_gripper.empty:
@@ -847,30 +847,30 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
         if not grip_success.empty:
             ax.scatter(grip_success['y_noise'], grip_success['x_noise'], 
                       color='blue', s=100, marker='o', alpha=1.0, 
-                      label=f'Gripper success', 
+                      label=f'Rigid gripper success', 
                       edgecolors='darkblue', linewidth=2, zorder=5)
         
         if not grip_failure.empty:
             ax.scatter(grip_failure['y_noise'], grip_failure['x_noise'], 
                       color='darkorange', s=300, marker='+', alpha=1.0, 
-                      label=f'Gripper failure', 
+                      label=f'Rigid gripper failure', 
                       linewidths=3.5, zorder=5)
     
     # No reference circles for the polygon plot
     df_combined = pd.concat([df_original, df_gripper], ignore_index=True)
     
     # Add grid lines
-    ax.axhline(0, color='grey', linestyle='-', linewidth=0.5, alpha=0.5, zorder=0)
-    ax.axvline(0, color='grey', linestyle='-', linewidth=0.5, alpha=0.5, zorder=0)
+    ax.axhline(0, color='black', linestyle='-', linewidth=0.5, alpha=0.5, zorder=0)
+    ax.axvline(0, color='black', linestyle='-', linewidth=0.5, alpha=0.5, zorder=0)
     
     # Formatting
-    ax.set_xlabel("y noise [m]", fontsize=22, fontweight='bold')
-    ax.set_ylabel("x noise [m]", fontsize=22, fontweight='bold')
-    ax.tick_params(axis='both', which='major', labelsize=18)
+    ax.set_xlabel("y noise [m]", fontsize=28, fontweight='bold')
+    ax.set_ylabel("x noise [m]", fontsize=28, fontweight='bold')
+    ax.tick_params(axis='both', which='major', labelsize=24)
     # ax.set_title("Success Region Analysis: Largest Polygons with No Failures Inside", 
                 # fontsize=16, fontweight='bold')
     ax.legend(fontsize=16, loc='best', framealpha=0.9)
-    ax.grid(True, alpha=0.3, zorder=0)
+    ax.grid(True, alpha=0.5, zorder=0, color="black")
     ax.set_aspect('equal')
     
     # Set axis limits
@@ -891,7 +891,7 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
         ylim = ax.get_ylim()
         scale = 0.0001*0.9
         # Optional shift
-        dx, dy = 30, 70
+        dx, dy = 30, 80
         # Rotation in radians
         import math
         # angle = math.radians(180)  # rotate 10 degrees counterclockwise
@@ -905,7 +905,7 @@ def plot_success_polygons(df_original, df_gripper, save_path=None, show_plot=Tru
                     .translate(-img_w/2+dx, -img_h/2+dy)  # move center to origin
                     .scale(scale, scale))
         trans_data += ax.transData
-        ax.imshow(bg_img, origin='upper', transform=trans_data, alpha=0.8, zorder=0)
+        ax.imshow(bg_img, origin='upper', transform=trans_data, alpha=0.7, zorder=0)
 
     plt.tight_layout()
     
@@ -1043,7 +1043,7 @@ def main():
         # 3. Success polygon plot
         print("  - Success polygon plot...")
         polygon_path = os.path.join(output_dir, "success_polygon_plot.png")
-        bg_img_path = "/home/mariano/Documents/hybrid_ws/src/dynamixel_control/dynamixel_control/merged_shifted_blended.png"
+        bg_img_path = "/home/mariano/Documents/hybrid_ws/src/dynamixel_control/dynamixel_control/merged_shifted_blended2.png"
         plot_success_polygons(df_original, df_gripper, save_path=polygon_path, show_plot=False, bg_img_path=bg_img_path)
         
         # # 4. Side-by-side comparison

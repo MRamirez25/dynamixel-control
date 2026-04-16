@@ -1,9 +1,6 @@
 """
-Authors: Giovanni Franzese and Ravi Prakash
-Email: g.franzese@tudelft.nl
-Cognitive Robotics, TU Delft
-This code is part of TERI (TEaching Robots Interactively) project
-This is the code used for the experiment of reshalving 
+Code modified from https://github.com/franzesegiovanni/policy_transportation/blob/devel/ros_ws/script/main_tags.py,
+by Giovanni Franzese, main difference being the re-targeting of the source and target keypoints.
 """
 #%%
 %matplotlib qt
@@ -39,17 +36,17 @@ if __name__ == '__main__':
     #%%
     # present_offsets = gpt.dynamixel_pos_controller.robot.get_homing_offsets()
     # print(present_offsets)
-    # #%%
+    # # #%%
     # new_offsets = copy.deepcopy(present_offsets)
-    # new_offsets[1] = new_offsets[1] -200
-    # new_offsets[2] = new_offsets[2] + 3600
-    # #%%
+    # # new_offsets[1] = new_offsets[1] -200
+    # new_offsets[2] = new_offsets[2] + 9200
+    # # #%%
     # gpt.dynamixel_pos_controller.robot.set_homing_offsets(new_offsets)
-    #%%
+    # #%%
     print(gpt.dynamixel_pos_controller.robot.get_positions_sync())
     gpt.speed=1.5
     #%%
-    positions = {1: 10400, 2: 14300}
+    positions = {1: 100, 2: 26800}
     #%%
     gpt.dynamixel_pos_controller.robot.move_pos_sync(positions, relative_to_init=False)
     # Record the trajectory to scan the environment
@@ -68,16 +65,18 @@ if __name__ == '__main__':
     print("Save the  source distribution data") 
     gpt.save_distributions()  # we are saving both the distributions but only the source is not empty
     # Save source configuration for data analysis later on
-    f = open("distributions/draw.pkl","wb")  
+    f = open("distributions/demo.pkl","wb")  
     pickle.dump(gpt.source_distribution,f)  
     f.close()   
+    #%%
+    gpt.dynamixel_pos_controller.increment = 100
     #%% Provide the kinesthetic demonstration of the task
     time.sleep(1)
 
     print("Record of the cartesian trajectory")
     gpt.Record_Demonstration(dynamixels_relative_pos=True)
     #%%  
-    gpt.save("draw_phi2")
+    gpt.save("demo")
     #%% Save the teaching trajectory
     f = open("data/traj_demo.pkl","wb")
     pickle.dump(gpt.training_traj,f)
@@ -92,7 +91,7 @@ if __name__ == '__main__':
     # f = open("data/dynamixel_positions_red_small.pkl","wb")
     # pickle.dump(gpt.training_dynamixels,f)
     # f.close()
-    ###################################################
+    ###################################################snake2
     #%%
 
     ###################################################
@@ -100,7 +99,7 @@ if __name__ == '__main__':
     i=2
     #%%
     size = "size_1"
-    noise_magnitude = 0.15
+    noise_magnitude = 0
     mass = f"noise_{noise_magnitude*100}"
     #%%
     gpt.load_distributions(filename='dynamic_grasp') #you need to re-load the distribution because that is in a particular format and then it is coverget after and overwritten inside the class
@@ -142,14 +141,14 @@ if __name__ == '__main__':
     #     print(f"File {file_path} has been created.")
 
     #%%
-    # random_direction = random.uniform(0, 2*np.pi)
-    # #%%
-    # x_direction_noise = noise_magnitude*np.cos(random_direction)
-    # y_direction_noise = noise_magnitude*np.sin(random_direction)
-    # for detection in gpt.target_distribution:
-    #     if detection.id[0] == 14:
-    #         detection.pose.pose.pose.pose.position.x = detection.pose.pose.pose.pose.position.x + x_direction_noise
-    #         detection.pose.pose.pose.pose.position.y = detection.pose.pose.pose.pose.position.y + y_direction_noise
+    random_direction = random.uniform(0, 2*np.pi)
+    #%%
+    x_direction_noise = noise_magnitude*np.cos(random_direction)
+    y_direction_noise = noise_magnitude*np.sin(random_direction)
+    for detection in gpt.target_distribution:
+        if detection.id[0] == 14:
+            detection.pose.pose.pose.pose.position.x = detection.pose.pose.pose.pose.position.x + x_direction_noise
+            detection.pose.pose.pose.pose.position.y = detection.pose.pose.pose.pose.position.y + y_direction_noise
 
     #%%
     if type(gpt.target_distribution) != type(gpt.source_distribution):
@@ -205,11 +204,11 @@ if __name__ == '__main__':
     ax.plot(old_traj[:,0], old_traj[:,1], old_traj[:,2], label='Trajectory 1', color='blue')
     ax.plot(gpt.training_traj[:,0], gpt.training_traj[:,1],gpt.training_traj[:,2],label='Trajectory 2', color='red')
     ax.scatter3D(gpt.source_distribution[0,0], gpt.source_distribution[0,1],gpt.source_distribution[0,2],marker="$1$", s=100)
-    ax.scatter3D(gpt.source_distribution[1,0], gpt.source_distribution[1,1],gpt.source_distribution[1,2],marker="$2$", s=100)
+    # ax.scatter3D(gpt.source_distribution[1,0], gpt.source_distribution[1,1],gpt.source_distribution[1,2],marker="$2$", s=100)
     # ax.scatter3D(gpt.source_distribution[2,0], gpt.source_distribution[2,1],gpt.source_distribution[2,2],marker="$3$", s=100)
 
     ax.scatter3D(gpt.target_distribution[0,0], gpt.target_distribution[0,1],gpt.target_distribution[0,2],marker="$1$", s=100)
-    ax.scatter3D(gpt.target_distribution[1,0], gpt.target_distribution[1,1],gpt.target_distribution[1,2],marker="$2$", s=100)
+    # ax.scatter3D(gpt.target_distribution[1,0], gpt.target_distribution[1,1],gpt.target_distribution[1,2],marker="$2$", s=100)
     # ax.scatter3D(gpt.target_distribution[2,0], gpt.target_distribution[2,1],gpt.target_distribution[2,2],marker="$3$", s=100)
 
     # Customize the plot
@@ -219,7 +218,7 @@ if __name__ == '__main__':
     ax.set_zlabel('Z axis')
     ax.legend()
 
-    # Show the plot
+    # Show the plotsnake2
     plt.show()
     #%%
     gpt.go_to_start()
